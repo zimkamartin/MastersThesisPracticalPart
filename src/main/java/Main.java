@@ -4,6 +4,7 @@ import com.swiftcryptollc.crypto.provider.KyberJCE;
 import com.swiftcryptollc.crypto.provider.KyberUniformRandom;
 import com.swiftcryptollc.crypto.provider.kyber.KyberParams;
 
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Arrays;
@@ -47,6 +48,22 @@ public class Main {
             xof.reset();
             xof.getAbsorbStream().write(Utils.shortArrayToByteArray(seed));
             xof.getSqueezeStream().read(buf);
+
+            // seed1 = H(salt || H(I || pwd)) //
+
+            String i = "identity123";
+            String pwd = "password123";
+            String iPwdConcatenated = i.concat(pwd);
+
+            MessageDigest md = MessageDigest.getInstance("SHA3-256");
+            byte[] hIntermediate = md.digest(iPwdConcatenated.getBytes());
+
+            // Create random input of bytes for generateUniform
+            byte[] salt = new byte[64];  // NO idea what should be the size
+            sr.nextBytes(salt);
+
+            md.reset();
+            byte[] seed1 = md.digest(Utils.concatByteArrays(salt, hIntermediate));
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");

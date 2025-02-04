@@ -8,4 +8,15 @@ public class Utils {
         }
         return bytes;
     }
+
+    public static byte[] concatByteArrays(byte[] first, byte[] second) {
+        // Create a new array to hold both byte arrays
+        byte[] concatenatedArray = new byte[first.length + second.length];
+        // Copy the first array into the new array
+        System.arraycopy(first, 0, concatenatedArray, 0, first.length);
+        // Copy the second array into the new array
+        System.arraycopy(second, 0, concatenatedArray, first.length, second.length);
+        // Print concatenated array
+        return concatenatedArray;
+    }
 }
