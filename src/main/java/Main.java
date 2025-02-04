@@ -65,6 +65,13 @@ public class Main {
             md.reset();
             byte[] seed1 = md.digest(Utils.concatByteArrays(salt, hIntermediate));
 
+            // seed2 = H(seed1) //
+
+            md.reset();
+            byte[] seed2 = md.digest(seed1);
+
+
+
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
             ex.printStackTrace();
