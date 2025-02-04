@@ -42,12 +42,12 @@ public class Main {
 
             // a = SHAKE-128(seed) //
 
-            byte[] buf = new byte[64];  // NO idea what should be the size
+            byte[] a = new byte[64];  // NO idea what should be the size
 
             KeccakSponge xof = new Shake128();
             xof.reset();
             xof.getAbsorbStream().write(Utils.shortArrayToByteArray(seed));
-            xof.getSqueezeStream().read(buf);
+            xof.getSqueezeStream().read(a);
 
             // seed1 = H(salt || H(I || pwd)) //
 
