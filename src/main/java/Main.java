@@ -10,19 +10,23 @@ import java.security.Security;
 import java.util.Arrays;
 
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateUniform;
+import static com.swiftcryptollc.crypto.provider.kyber.Poly.polyAdd;
+import static com.swiftcryptollc.crypto.provider.kyber.Poly.polyBaseMulMont;
 
 public class Main {
     public static void main(String[] args) {
         Security.setProperty("crypto.policy", "unlimited");
         Security.addProvider(new KyberJCE());
 
-        establishValidator();
+        short[] v = establishValidator();
 
         System.out.print("Everything went well...");
 
     }
 
-    private static void establishValidator() {
+    private static short[] establishValidator() {
+        short[] v = new short[64];  // NO idea what should be the size
+
         try {
 
             // seed <- R_q //
@@ -42,12 +46,11 @@ public class Main {
 
             // a = SHAKE-128(seed) //
 
-            byte[] a = new byte[64];  // NO idea what should be the size
+            byte[] a = new byte[2 * KyberParams.paramsPolyBytes];  // NO idea what should be the size
 
             KeccakSponge xof = new Shake128();
             xof.reset();
-            xof.getAbsorbStream().write(Utils.shortArrayToByteArray(seed));
-            xof.getSqueezeStream().read(a);
+            xof.getAbsorbStream().write(Utils.shortArrayToByteArray(seed));  // outputs only 96 (instead of 768 bytes)
 
             // seed1 = H(salt || H(I || pwd)) //
 
@@ -71,16 +74,30 @@ public class Main {
             byte[] seed2 = md.digest(seed1);
 
             // s_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
+            // also because of the computation of v, s_v should be \in R_q and use polyBaseMulMont
 
             int sv = sr.nextInt();  // FIX it
 
             // e_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
+            // also because of the computation of v, e_v should be \in R_q and use polyBaseMulMont
 
             int ev = sr.nextInt();  // FIX it
+
+            // v <- as_v + e_v \in R_q //
+
+            short[] aShort = Utils.byteArrayToShortArray(a);
+            sv = sv % Short.MAX_VALUE;
+            ev = ev % Short.MAX_VALUE;
+            short[] svShort = Utils.createShortArrayFromInt(sv, KyberParams.paramsPolyBytes);  // NO idea what should be the size
+            short[] evShort = Utils.createShortArrayFromInt(ev, KyberParams.paramsPolyBytes);
+            short[] asv = polyBaseMulMont(aShort, svShort);
+
+            v = polyAdd(asv, evShort);
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
             ex.printStackTrace();
         }
+        return v;
     }
 }
