@@ -70,7 +70,13 @@ public class Main {
             md.reset();
             byte[] seed2 = md.digest(seed1);
 
+            // s_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
 
+            int sv = sr.nextInt();  // FIX it
+
+            // e_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
+
+            int ev = sr.nextInt();  // FIX it
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
