@@ -1,6 +1,7 @@
 import com.github.aelstad.keccakj.core.KeccakSponge;
 import com.github.aelstad.keccakj.fips202.Shake128;
 import com.swiftcryptollc.crypto.provider.KyberJCE;
+import com.swiftcryptollc.crypto.provider.KyberPackedPKI;
 import com.swiftcryptollc.crypto.provider.KyberUniformRandom;
 import com.swiftcryptollc.crypto.provider.kyber.KyberParams;
 
@@ -9,6 +10,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Arrays;
 
+import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateKyberKeys;
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateUniform;
 import static com.swiftcryptollc.crypto.provider.kyber.Poly.polyAdd;
 import static com.swiftcryptollc.crypto.provider.kyber.Poly.polyBaseMulMont;
@@ -118,6 +120,19 @@ public class Main {
             // again chi should be Discrete Gaussian distribution. FIX it
             int e1Prime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
             int e2Prime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
+
+            // KEY -> (s_1, p_i) //
+
+            int paramsK = 4;
+            KyberPackedPKI keysClient = generateKyberKeys(paramsK);
+            byte[] s1 = keysClient.getPackedPrivateKey();
+            byte[] pi = keysClient.getPackedPublicKey();
+
+            // KEY -> (s_1', p_j) //
+
+            KyberPackedPKI keysServer = generateKyberKeys(paramsK);
+            byte[] s1Prime = keysServer.getPackedPrivateKey();
+            byte[] pj = keysServer.getPackedPublicKey();
 
         } catch (Exception ex) {
         System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
