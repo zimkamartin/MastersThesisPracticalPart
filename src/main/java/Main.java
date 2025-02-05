@@ -20,6 +20,8 @@ public class Main {
 
         short[] v = establishValidator();
 
+        authenticatedKeyExchange();
+
         System.out.print("Everything went well...");
 
     }
@@ -99,5 +101,27 @@ public class Main {
             ex.printStackTrace();
         }
         return v;
+    }
+
+    private static void authenticatedKeyExchange() {
+
+        try {
+
+            // e_1 <- chi //
+
+            // chi should be Discrete Gaussian distribution. FIX it
+            SecureRandom sr = SecureRandom.getInstanceStrong();
+            int e1 = sr.nextInt(2); // Generates 0 or 1 with 50% probability
+
+            // e_1', e_1'' <- chi //
+
+            // again chi should be Discrete Gaussian distribution. FIX it
+            int e1Prime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
+            int e2Prime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
+
+        } catch (Exception ex) {
+        System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
+        ex.printStackTrace();
+    }
     }
 }
