@@ -19,19 +19,22 @@ public class Main {
         Security.setProperty("crypto.policy", "unlimited");
         Security.addProvider(new KyberJCE());
 
-        short[] v = establishValidator();
-
-        authenticatedKeyExchange(v);
+        ProtocolsKnowledge protocol = establishValidator();
+        authenticatedKeyExchange(protocol);
 
         System.out.print("Everything went well...");
 
     }
 
-    private static short[] establishValidator() {
+    private static ProtocolsKnowledge establishValidator() {
 
         // Everything is on the client's side.
 
-        short[] v = new short[64];  // NO idea what should be the size
+        short[] validator = new short[64];  // NO idea what should be the size
+        short[] seed = new short[KyberParams.paramsPolyBytes];
+
+        byte[] hashedIdentity = new byte[0];
+        byte[] salt = new byte[0];
 
         try {
 
@@ -48,7 +51,7 @@ public class Main {
             KyberUniformRandom uniformRandom = new KyberUniformRandom();
             generateUniform(uniformRandom, seedGU, 504, KyberParams.paramsN);
 
-            short[] seed = uniformRandom.getUniformR();  // length = 384 because of KyberParams.paramsPolyBytes
+            seed = uniformRandom.getUniformR();  // length = 384 because of KyberParams.paramsPolyBytes
 
             // a = SHAKE-128(seed) //
 
@@ -65,7 +68,7 @@ public class Main {
             byte[] intermediateHashSeed = md.digest(iPwdConcatenated.getBytes());
 
             // Create random input of bytes for generateUniform
-            byte[] salt = new byte[64];  // NO idea what should be the size
+            salt = new byte[64];  // NO idea what should be the size
             sr.nextBytes(salt);
 
             md.reset();
@@ -95,22 +98,30 @@ public class Main {
             short[] evShort = Utils.createShortArrayFromInt(ev, KyberParams.paramsPolyBytes);
             short[] asv = polyBaseMulMont(aShort, svShort);
 
-            v = polyAdd(asv, evShort);
+            validator = polyAdd(asv, evShort);
 
             // Send H(I), salt, v to the server. //
+            md.reset();
+            hashedIdentity = md.digest(i.getBytes());
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
             ex.printStackTrace();
         }
-        return v;
+
+        return new ProtocolsKnowledge(new ClientsKnowledge(validator, seed), new ServersKnowledge(hashedIdentity, salt, validator));
     }
 
-    private static void authenticatedKeyExchange(short[] validator) {
+    private static void authenticatedKeyExchange(ProtocolsKnowledge protocol) {
 
         // Variables p_{i,j}, u are used on both sides. We have decided to separate sides in the following way:
         // p{i,j}C = p_{i,j} on the client's side, p{i,j}S = p_{i,j} on the server's side.
         // uC = u on the client's side, uS = u on the server's side.
+
+        short[] validatorC = protocol.getClientsKnowledge().getValidator();
+        short[] seedC = protocol.getClientsKnowledge().getSeed();
+
+        short[] validatorS = protocol.getServersKnowledge().getValidator();
 
         try {
 
@@ -159,9 +170,9 @@ public class Main {
 
             // k_j <- (v + p_i) s_1' + uv + e_1'' // server //
 
-            short[] kj = polyBaseMulMont(polyAdd(validator, piS), Utils.byteArrayToShortArray(s1Prime));
-            polyBaseMulMont(Utils.byteArrayToShortArray(uS), validator);
-            kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(uS), validator));
+            short[] kj = polyBaseMulMont(polyAdd(validatorS, piS), Utils.byteArrayToShortArray(s1Prime));
+            polyBaseMulMont(Utils.byteArrayToShortArray(uS), validatorS);
+            kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(uS), validatorS));
 
             // sigma_j \in ?_m // server // find out how to generate sigma_j and FIX this
 
@@ -193,6 +204,8 @@ public class Main {
             md.reset();
             byte[] intermediateHashUClient = md.digest(Utils.concatByteArrays(piC, Utils.shortArrayToByteArray(pjC)));
             byte[] uC = Utils.nBytesFromShake128(intermediateHashUClient, 2 * KyberParams.paramsPolyBytes);
+
+            // v <- as_v + e_v \in R_q // client //
 
 
 
