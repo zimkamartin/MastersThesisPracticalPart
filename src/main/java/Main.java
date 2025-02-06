@@ -160,6 +160,12 @@ public class Main {
             polyBaseMulMont(Utils.byteArrayToShortArray(u), validator);
             kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(u), validator));
 
+            // sigma_j \in ?_m // server // find out how to generate sigma_j and FIX this
+
+            byte[] sigmaJ = new byte[504];  // NO idea what should be the size
+            sr.nextBytes(sigmaJ);
+
+
         } catch (Exception ex) {
         System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
         ex.printStackTrace();
