@@ -6,6 +6,7 @@ import com.swiftcryptollc.crypto.provider.kyber.KyberParams;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.Security;
+import java.util.Arrays;
 
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateKyberKeys;
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateUniform;
@@ -18,7 +19,7 @@ public class Main {
 
         ProtocolsKnowledge protocol = establishValidator();
         authenticatedKeyExchange(protocol);
-        //mutualVerification;
+        mutualVerification(protocol);
 
         System.out.print("Everything went well...");
 
@@ -117,7 +118,6 @@ public class Main {
         // p{i,j}C = p_{i,j} on the client's side, p{i,j}S = p_{i,j} on the server's side.
         // uC = u on the client's side, uS = u on the server's side.
 
-        short[] seedC = protocol.getClientsKnowledge().getSeed();
         int svC = protocol.getClientsKnowledge().getSv();
         short[] vC = protocol.getClientsKnowledge().getValidator();
 
@@ -234,6 +234,64 @@ public class Main {
 
             protocol.getClientsKnowledge().setSharedSecret(ski);
             protocol.getServersKnowledge().setSharedSecret(skj);
+
+            // Save p_i and p_js //
+
+            protocol.getClientsKnowledge().setPi(piC);
+            protocol.getClientsKnowledge().setPj(pjC);
+            protocol.getServersKnowledge().setPi(piS);
+            protocol.getServersKnowledge().setPj(pjS);
+
+        } catch (Exception ex) {
+            System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
+            ex.printStackTrace();
+        }
+    }
+
+    private static void mutualVerification(ProtocolsKnowledge protocol) {
+
+        byte[] piC = protocol.getClientsKnowledge().getPi();
+        short[] pjC = protocol.getClientsKnowledge().getPj();
+        byte[] ski = protocol.getClientsKnowledge().getSharedSecret();
+
+        short[] piS = protocol.getServersKnowledge().getPi();
+        byte[] pjS = protocol.getServersKnowledge().getPj();
+        byte[] skj = protocol.getServersKnowledge().getSharedSecret();
+
+        try {
+
+            // M_1 = SHA3-256(p_i || p_j || sk_i ) // client //
+
+            MessageDigest md = MessageDigest.getInstance("SHA3-256");
+            md.reset();
+            byte[] m1 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(piC, Utils.shortArrayToByteArray(pjC)), ski));
+
+            // Send M_1 to the server. //
+
+            // M_2 = SHA3-256(p_i || p_j || sk_j ) // server //
+
+            md.reset();
+            byte[] m2 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), pjS), skj));
+
+            // Verify M_2 = M_1 // server //
+
+            System.out.println(Arrays.equals(m1, m2));
+
+            // M_3 = SHA3-256(p_i || M_2 || sk_j ) // server //
+
+            md.reset();
+            byte[] m3 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), m2), skj));
+
+            // Send M_3 to the client. //
+
+            // M_4 = SHA3-256(p_i || M_1 || sk_i ) // server //
+
+            md.reset();
+            byte[] m4 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(piC, m1), ski));
+
+            // Verify M_4 = M_3 // client //
+
+            System.out.println(Arrays.equals(m4, m3));
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
