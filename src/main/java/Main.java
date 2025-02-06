@@ -152,6 +152,11 @@ public class Main {
 
             short[] piS = decompressPoly(piPrime, du);
 
+            // u <- XOF(H(p_i || p_j)) // server //
+
+            MessageDigest md = MessageDigest.getInstance("SHA3-256");
+            byte[] u = md.digest(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), pj));
+
         } catch (Exception ex) {
         System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
         ex.printStackTrace();
