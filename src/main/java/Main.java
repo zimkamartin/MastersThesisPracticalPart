@@ -12,8 +12,7 @@ import java.util.Arrays;
 
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateKyberKeys;
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateUniform;
-import static com.swiftcryptollc.crypto.provider.kyber.Poly.polyAdd;
-import static com.swiftcryptollc.crypto.provider.kyber.Poly.polyBaseMulMont;
+import static com.swiftcryptollc.crypto.provider.kyber.Poly.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -29,6 +28,9 @@ public class Main {
     }
 
     private static short[] establishValidator() {
+
+        // Everything is on the client's side.
+
         short[] v = new short[64];  // NO idea what should be the size
 
         try {
@@ -98,6 +100,8 @@ public class Main {
 
             v = polyAdd(asv, evShort);
 
+            // Send H(I), salt, v to the server. //
+
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
             ex.printStackTrace();
@@ -107,32 +111,46 @@ public class Main {
 
     private static void authenticatedKeyExchange() {
 
+        // p_i is used on both sides. We have decided to separate sides in the following way:
+        // piC = p_i on the client's side, piS = p_i on the server's side.
+
         try {
 
-            // e_1 <- chi //
+            // e_1 <- chi // client //
 
             // chi should be Discrete Gaussian distribution. FIX it
             SecureRandom sr = SecureRandom.getInstanceStrong();
             int e1 = sr.nextInt(2); // Generates 0 or 1 with 50% probability
 
-            // e_1', e_1'' <- chi //
+            // e_1', e_1'' <- chi // server //
 
             // again chi should be Discrete Gaussian distribution. FIX it
             int e1Prime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
             int e2Prime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
 
-            // KEY -> (s_1, p_i) //
+            // KEY -> (s_1, p_i) // client //
 
             int paramsK = 4;
             KyberPackedPKI keysClient = generateKyberKeys(paramsK);
             byte[] s1 = keysClient.getPackedPrivateKey();
-            byte[] pi = keysClient.getPackedPublicKey();
+            byte[] piC = keysClient.getPackedPublicKey();
 
-            // KEY -> (s_1', p_j) //
+            // KEY -> (s_1', p_j) // server //
 
             KyberPackedPKI keysServer = generateKyberKeys(paramsK);
             byte[] s1Prime = keysServer.getPackedPrivateKey();
             byte[] pj = keysServer.getPackedPublicKey();
+
+            // p_i' = Compress_q(p_i, d_u) // client //
+
+            int du = 11;
+            byte[] piPrime = compressPoly(Utils.byteArrayToShortArray(piC), du);
+
+            // Send i, p_i' to the server. //
+
+            // p_i = Decompress_q(p_i', d_u) // server //
+
+            short[] piS = decompressPoly(piPrime, du);
 
         } catch (Exception ex) {
         System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
