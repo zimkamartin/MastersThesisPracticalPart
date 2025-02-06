@@ -165,6 +165,15 @@ public class Main {
             byte[] sigmaJ = new byte[504];  // NO idea what should be the size
             sr.nextBytes(sigmaJ);
 
+            // v' <- ACon(k_j, sigma_j, params) // server //
+            // params = (q, m, g, d, aux) - aux is NOT needed in my opinion
+
+            double q = 12289;
+            double m = 16;
+            double g = 256;
+
+            int vPrime = Utils.ACon(Utils.bytesToDouble(Utils.shortArrayToByteArray(kj)), Utils.bytesToDouble(sigmaJ), q, m, g);
+            // am not the happiest with this - FIX it
 
         } catch (Exception ex) {
         System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
