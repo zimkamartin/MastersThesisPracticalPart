@@ -178,8 +178,8 @@ public class Main {
 
             // sigma_j \in ?_m // server // find out how to generate sigma_j and FIX this
 
-            byte[] sigmaJ = new byte[504];  // NO idea what should be the size
-            sr.nextBytes(sigmaJ);
+            byte[] sigmaj = new byte[504];  // NO idea what should be the size
+            sr.nextBytes(sigmaj);
 
             // v' <- ACon(k_j, sigma_j, params) // server //
             // params = (q, m, g, d, aux) - aux is NOT needed in my opinion
@@ -188,7 +188,7 @@ public class Main {
             double m = 16;
             double g = 256;
 
-            int vPrime = Utils.ACon(Utils.bytesToDouble(Utils.shortArrayToByteArray(kj)), Utils.bytesToDouble(sigmaJ), q, m, g);
+            int vPrime = Utils.ACon(Utils.bytesToDouble(Utils.shortArrayToByteArray(kj)), Utils.bytesToDouble(sigmaj), q, m, g);
             // am not the happiest with this - FIX it
 
             // p_j' = Compress_q(p_j, d_v) // server //
@@ -219,7 +219,19 @@ public class Main {
             // sigma_i <- ARec(k_i, v', params) // client //
             // params = (q, m, g, d, aux) - aux is NOT needed in my opinion
 
-            int sigma_i = Utils.ARec(Utils.bytesToDouble(Utils.shortArrayToByteArray(ki)), vPrime, q, m, g);
+            int sigmai = Utils.ARec(Utils.bytesToDouble(Utils.shortArrayToByteArray(ki)), vPrime, q, m, g);
+
+            // sk_i <- SHA3-256(sigma_i) // client //
+
+            md.reset();
+            byte[] ski = md.digest(Utils.intToByteArray(sigmai));
+
+            // sk_j <- SHA3-256(sigma_j) // server //
+
+            md.reset();
+            byte[] skj = md.digest(sigmaj);
+
+            // System.out.println(Arrays.equals(ski, skj));
 
 
         } catch (Exception ex) {
