@@ -1,5 +1,3 @@
-import com.github.aelstad.keccakj.core.KeccakSponge;
-import com.github.aelstad.keccakj.fips202.Shake128;
 import com.swiftcryptollc.crypto.provider.KyberJCE;
 import com.swiftcryptollc.crypto.provider.KyberPackedPKI;
 import com.swiftcryptollc.crypto.provider.KyberUniformRandom;
@@ -8,7 +6,6 @@ import com.swiftcryptollc.crypto.provider.kyber.KyberParams;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.Security;
-import java.util.Arrays;
 
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateKyberKeys;
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateUniform;
@@ -233,8 +230,10 @@ public class Main {
             md.reset();
             byte[] skj = md.digest(sigmaj);
 
-            // System.out.println(Arrays.equals(ski, skj));
+            // Save shared secrets //
 
+            protocol.getClientsKnowledge().setSharedSecret(ski);
+            protocol.getServersKnowledge().setSharedSecret(skj);
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
