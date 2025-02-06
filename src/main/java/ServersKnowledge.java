@@ -1,9 +1,9 @@
 public class ServersKnowledge {
-    // Send H(I), salt, v to the server
 
     private final byte[] hashedIdentity;
     private final byte[] salt;
     private final short[] validator;
+    private byte[] sharedSecret;
 
     public ServersKnowledge(byte[] hashedIdentity, byte[] salt, short[] validator) {
         this.hashedIdentity = hashedIdentity;
@@ -21,5 +21,13 @@ public class ServersKnowledge {
 
     public short[] getValidator() {
         return validator;
+    }
+
+    public void setSharedSecret(byte[] sharedSecret) {
+        this.sharedSecret = sharedSecret;
+    }
+
+    public byte[] getSharedSecret() {
+        return sharedSecret;
     }
 }
