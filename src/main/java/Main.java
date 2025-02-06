@@ -156,13 +156,9 @@ public class Main {
 
             // k_j <- (v + p_i) s_1' + uv + e_1'' // server //
 
-//            short[] kj = polyBaseMulMont(polyAdd(validator, piS), Utils.byteArrayToShortArray(s1Prime));
-//            System.out.println(Utils.byteArrayToShortArray(u).length);
-//            System.out.println(validator.length);
-//
-//            polyBaseMulMont(Utils.byteArrayToShortArray(u), validator);
-//            //kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(u), validator));
-
+            short[] kj = polyBaseMulMont(polyAdd(validator, piS), Utils.byteArrayToShortArray(s1Prime));
+            polyBaseMulMont(Utils.byteArrayToShortArray(u), validator);
+            kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(u), validator));
 
         } catch (Exception ex) {
         System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
