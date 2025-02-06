@@ -216,7 +216,10 @@ public class Main {
 
             short[] ki = polyAdd(polyBaseMulMont(fstBracket, sndBracket), polyBaseMulMont(Utils.byteArrayToShortArray(uC), vC));
 
+            // sigma_i <- ARec(k_i, v', params) // client //
+            // params = (q, m, g, d, aux) - aux is NOT needed in my opinion
 
+            int sigma_i = Utils.ARec(Utils.bytesToDouble(Utils.shortArrayToByteArray(ki)), vPrime, q, m, g);
 
 
         } catch (Exception ex) {
