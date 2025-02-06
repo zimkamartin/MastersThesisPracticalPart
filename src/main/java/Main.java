@@ -175,6 +175,13 @@ public class Main {
             int vPrime = Utils.ACon(Utils.bytesToDouble(Utils.shortArrayToByteArray(kj)), Utils.bytesToDouble(sigmaJ), q, m, g);
             // am not the happiest with this - FIX it
 
+            // p_j' = Compress_q(p_j, d_v) // server //
+            int dv = 3;
+            byte[] pjPrime = compressPoly(Utils.byteArrayToShortArray(pj), dv);
+
+            // Send salt, p_j', v', H(salt, p_j', v') to the client. //
+
+
         } catch (Exception ex) {
         System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
         ex.printStackTrace();
