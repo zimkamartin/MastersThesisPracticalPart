@@ -61,14 +61,15 @@ public class Main {
             String iPwdConcatenated = i.concat(pwd);
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
-            byte[] intermediateHash = md.digest(iPwdConcatenated.getBytes());
+            md.reset();
+            byte[] intermediateHashSeed = md.digest(iPwdConcatenated.getBytes());
 
             // Create random input of bytes for generateUniform
             byte[] salt = new byte[64];  // NO idea what should be the size
             sr.nextBytes(salt);
 
             md.reset();
-            byte[] seed1 = md.digest(Utils.concatByteArrays(salt, intermediateHash));
+            byte[] seed1 = md.digest(Utils.concatByteArrays(salt, intermediateHashSeed));
 
             // seed2 = H(seed1) //
 
@@ -107,8 +108,9 @@ public class Main {
 
     private static void authenticatedKeyExchange(short[] validator) {
 
-        // p_{i,j} are used on both sides. We have decided to separate sides in the following way:
+        // Variables p_{i,j}, u are used on both sides. We have decided to separate sides in the following way:
         // p{i,j}C = p_{i,j} on the client's side, p{i,j}S = p_{i,j} on the server's side.
+        // uC = u on the client's side, uS = u on the server's side.
 
         try {
 
@@ -151,14 +153,15 @@ public class Main {
             // u <- XOF(H(p_i || p_j)) // server //
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
-            byte[] intermediateHash = md.digest(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), pjS));
-            byte[] u = Utils.nBytesFromShake128(intermediateHash, 2 * KyberParams.paramsPolyBytes);
+            md.reset();
+            byte[] intermediateHashUServer = md.digest(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), pjS));
+            byte[] uS = Utils.nBytesFromShake128(intermediateHashUServer, 2 * KyberParams.paramsPolyBytes);
 
             // k_j <- (v + p_i) s_1' + uv + e_1'' // server //
 
             short[] kj = polyBaseMulMont(polyAdd(validator, piS), Utils.byteArrayToShortArray(s1Prime));
-            polyBaseMulMont(Utils.byteArrayToShortArray(u), validator);
-            kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(u), validator));
+            polyBaseMulMont(Utils.byteArrayToShortArray(uS), validator);
+            kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(uS), validator));
 
             // sigma_j \in ?_m // server // find out how to generate sigma_j and FIX this
 
@@ -184,6 +187,13 @@ public class Main {
             // p_j = Decompress_q(p_j', d_v) // client //
 
             short[] pjC = decompressPoly(pjPrime, dv);
+
+            // u <- XOF(H(p_i || p_j)) // client //
+
+            md.reset();
+            byte[] intermediateHashUClient = md.digest(Utils.concatByteArrays(piC, Utils.shortArrayToByteArray(pjC)));
+            byte[] uC = Utils.nBytesFromShake128(intermediateHashUClient, 2 * KyberParams.paramsPolyBytes);
+
 
 
 
