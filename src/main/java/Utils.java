@@ -1,6 +1,5 @@
 import com.github.aelstad.keccakj.core.KeccakSponge;
 import com.github.aelstad.keccakj.fips202.Shake128;
-import com.swiftcryptollc.crypto.provider.kyber.KyberParams;
 
 import java.util.Arrays;
 
@@ -68,5 +67,19 @@ public class Utils {
         }
 
         return output;
+    }
+
+    public static int ACon(double k1, double sigma1, double q, double m, double g) {
+        // round(sigma_1 * q / m)
+        long roundedTerm = Math.round(sigma1 * q / m);
+        // floor(g(k_1 + roundedTerm) / q)
+        long flooredTerm = (long) Math.floor(g * (k1 + roundedTerm) / q);
+        return (int) (flooredTerm % g);
+    }
+
+    public static int ARec(double k2, int v, double q, double m, double g) {
+        // floor(m * (v / g - k_2 / q))
+        long flooredTerm = (long) Math.floor(m * (v / g - k2 / q));
+        return (int) (flooredTerm % m);
     }
 }
