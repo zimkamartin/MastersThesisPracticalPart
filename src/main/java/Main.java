@@ -32,6 +32,7 @@ public class Main {
 
         short[] validator = new short[64];  // NO idea what should be the size
         short[] seed = new short[KyberParams.paramsPolyBytes];
+        int sv = 0;
 
         byte[] hashedIdentity = new byte[0];
         byte[] salt = new byte[0];
@@ -82,7 +83,7 @@ public class Main {
             // s_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
             // also because of the computation of v, s_v should be \in R_q and use polyBaseMulMont
 
-            int sv = sr.nextInt();  // FIX it
+            sv = sr.nextInt();  // FIX it
 
             // e_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
             // also because of the computation of v, e_v should be \in R_q and use polyBaseMulMont
@@ -109,7 +110,7 @@ public class Main {
             ex.printStackTrace();
         }
 
-        return new ProtocolsKnowledge(new ClientsKnowledge(validator, seed), new ServersKnowledge(hashedIdentity, salt, validator));
+        return new ProtocolsKnowledge(new ClientsKnowledge(seed, sv, validator), new ServersKnowledge(hashedIdentity, salt, validator));
     }
 
     private static void authenticatedKeyExchange(ProtocolsKnowledge protocol) {
@@ -118,10 +119,11 @@ public class Main {
         // p{i,j}C = p_{i,j} on the client's side, p{i,j}S = p_{i,j} on the server's side.
         // uC = u on the client's side, uS = u on the server's side.
 
-        short[] validatorC = protocol.getClientsKnowledge().getValidator();
         short[] seedC = protocol.getClientsKnowledge().getSeed();
+        int svC = protocol.getClientsKnowledge().getSv();
+        short[] vC = protocol.getClientsKnowledge().getValidator();
 
-        short[] validatorS = protocol.getServersKnowledge().getValidator();
+        short[] vS = protocol.getServersKnowledge().getValidator();
 
         try {
 
@@ -170,9 +172,9 @@ public class Main {
 
             // k_j <- (v + p_i) s_1' + uv + e_1'' // server //
 
-            short[] kj = polyBaseMulMont(polyAdd(validatorS, piS), Utils.byteArrayToShortArray(s1Prime));
-            polyBaseMulMont(Utils.byteArrayToShortArray(uS), validatorS);
-            kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(uS), validatorS));
+            short[] kj = polyBaseMulMont(polyAdd(vS, piS), Utils.byteArrayToShortArray(s1Prime));
+            polyBaseMulMont(Utils.byteArrayToShortArray(uS), vS);
+            kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(uS), vS));
 
             // sigma_j \in ?_m // server // find out how to generate sigma_j and FIX this
 
@@ -205,7 +207,14 @@ public class Main {
             byte[] intermediateHashUClient = md.digest(Utils.concatByteArrays(piC, Utils.shortArrayToByteArray(pjC)));
             byte[] uC = Utils.nBytesFromShake128(intermediateHashUClient, 2 * KyberParams.paramsPolyBytes);
 
-            // v <- as_v + e_v \in R_q // client //
+            // v <- as_v + e_v \in R_q // client // that is vC
+
+            // k_i <- (p_j - v) * (s_v + s_1 ) + uv
+
+            short[] fstBracket = polySub(pjC, vC);
+            short[] sndBracket = polyAdd(Utils.createShortArrayFromInt(svC, 2 * KyberParams.paramsPolyBytes), Utils.byteArrayToShortArray(s1));
+
+            short[] ki = polyAdd(polyBaseMulMont(fstBracket, sndBracket), polyBaseMulMont(Utils.byteArrayToShortArray(uC), vC));
 
 
 
