@@ -107,8 +107,8 @@ public class Main {
 
     private static void authenticatedKeyExchange(short[] validator) {
 
-        // p_i is used on both sides. We have decided to separate sides in the following way:
-        // piC = p_i on the client's side, piS = p_i on the server's side.
+        // p_{i,j} are used on both sides. We have decided to separate sides in the following way:
+        // p{i,j}C = p_{i,j} on the client's side, p{i,j}S = p_{i,j} on the server's side.
 
         try {
 
@@ -135,7 +135,7 @@ public class Main {
 
             KyberPackedPKI keysServer = generateKyberKeys(paramsK);
             byte[] s1Prime = keysServer.getPackedPrivateKey();
-            byte[] pj = keysServer.getPackedPublicKey();
+            byte[] pjS = keysServer.getPackedPublicKey();
 
             // p_i' = Compress_q(p_i, d_u) // client //
 
@@ -151,7 +151,7 @@ public class Main {
             // u <- XOF(H(p_i || p_j)) // server //
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
-            byte[] intermediateHash = md.digest(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), pj));
+            byte[] intermediateHash = md.digest(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), pjS));
             byte[] u = Utils.nBytesFromShake128(intermediateHash, 2 * KyberParams.paramsPolyBytes);
 
             // k_j <- (v + p_i) s_1' + uv + e_1'' // server //
@@ -177,9 +177,14 @@ public class Main {
 
             // p_j' = Compress_q(p_j, d_v) // server //
             int dv = 3;
-            byte[] pjPrime = compressPoly(Utils.byteArrayToShortArray(pj), dv);
+            byte[] pjPrime = compressPoly(Utils.byteArrayToShortArray(pjS), dv);
 
             // Send salt, p_j', v', H(salt, p_j', v') to the client. //
+
+            // p_j = Decompress_q(p_j', d_v) // client //
+
+            short[] pjC = decompressPoly(pjPrime, dv);
+
 
 
         } catch (Exception ex) {
