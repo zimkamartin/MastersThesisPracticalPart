@@ -123,16 +123,11 @@ public class Main {
 
         try {
 
-            // e_1 <- chi // client // WHY do we need it?
-
-            // chi should be Discrete Gaussian distribution. FIX it
             SecureRandom sr = SecureRandom.getInstanceStrong();
-            int e1 = sr.nextInt(2); // Generates 0 or 1 with 50% probability
 
-            // e_1', e_1'' <- chi // server // WHY do we need e_1'?
+            // e_1'' <- chi // server //
 
             // again chi should be Discrete Gaussian distribution. FIX it
-            int e1Prime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
             int e1DoublePrime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
 
             // KEY -> (s_1, p_i) // client //
