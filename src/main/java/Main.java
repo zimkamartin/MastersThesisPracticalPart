@@ -34,7 +34,6 @@ public class Main {
         int sv = 0;
 
         byte[] hashedIdentity = new byte[0];
-        byte[] salt = new byte[0];
 
         try {
 
@@ -57,15 +56,9 @@ public class Main {
 
             byte[] a = Utils.nBytesFromShake128(Utils.shortArrayToByteArray(seed), 2 * KyberParams.paramsPolyBytes);
 
-            // seed1 = H(salt || H(I || pwd)) //
-
             String i = "identity123";
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
-
-            // Create random input of bytes for generateUniform
-            salt = new byte[64];  // NO idea what should be the size
-            sr.nextBytes(salt);
 
             // s_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
             // also because of the computation of v, s_v should be \in R_q and use polyBaseMulMont
@@ -95,7 +88,7 @@ public class Main {
             ex.printStackTrace();
         }
 
-        return new ProtocolsKnowledge(new ClientsKnowledge(seed, sv, validator), new ServersKnowledge(hashedIdentity, salt, validator));
+        return new ProtocolsKnowledge(new ClientsKnowledge(seed, sv, validator), new ServersKnowledge(hashedIdentity, validator));
     }
 
     private static void authenticatedKeyExchange(ProtocolsKnowledge protocol) {

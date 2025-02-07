@@ -1,24 +1,18 @@
 public class ServersKnowledge {
 
     private final byte[] hashedIdentity;
-    private final byte[] salt;
     private final short[] validator;
     private byte[] sharedSecret;
     private short[] pi;
     private byte[] pj;
 
-    public ServersKnowledge(byte[] hashedIdentity, byte[] salt, short[] validator) {
+    public ServersKnowledge(byte[] hashedIdentity, short[] validator) {
         this.hashedIdentity = hashedIdentity;
-        this.salt = salt;
         this.validator = validator;
     }
 
     public byte[] getHashedIdentity() {
         return hashedIdentity;
-    }
-
-    public byte[] getSalt() {
-        return salt;
     }
 
     public short[] getValidator() {
