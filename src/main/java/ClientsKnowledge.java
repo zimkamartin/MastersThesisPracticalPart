@@ -5,7 +5,7 @@ public class ClientsKnowledge {
     private final short[] validator;
     private byte[] sharedSecret;
     private byte[] pi;
-    private short[] pj;
+    private byte[] pj;
 
     public ClientsKnowledge(short[] seed, int sv, short[] validator) {
         this.seed = seed;
@@ -41,11 +41,11 @@ public class ClientsKnowledge {
         return pi;
     }
 
-    public void setPj(short[] pj) {
+    public void setPj(byte[] pj) {
         this.pj = pj;
     }
 
-    public short[] getPj() {
+    public byte[] getPj() {
         return pj;
     }
 }

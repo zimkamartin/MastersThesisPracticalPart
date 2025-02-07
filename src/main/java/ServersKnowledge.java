@@ -3,7 +3,7 @@ public class ServersKnowledge {
     private final byte[] hashedIdentity;
     private final short[] validator;
     private byte[] sharedSecret;
-    private short[] pi;
+    private byte[] pi;
     private byte[] pj;
 
     public ServersKnowledge(byte[] hashedIdentity, short[] validator) {
@@ -27,11 +27,11 @@ public class ServersKnowledge {
         return sharedSecret;
     }
 
-    public void setPi(short[] pi) {
+    public void setPi(byte[] pi) {
         this.pi = pi;
     }
 
-    public short[] getPi() {
+    public byte[] getPi() {
         return pi;
     }
 

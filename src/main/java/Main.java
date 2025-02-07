@@ -116,35 +116,24 @@ public class Main {
             int paramsK = 4;
             KyberPackedPKI keysClient = generateKyberKeys(paramsK);
             byte[] s1 = keysClient.getPackedPrivateKey();
-            byte[] piC = keysClient.getPackedPublicKey();
+            byte[] pi = keysClient.getPackedPublicKey();
 
             // KEY -> (s_1', p_j) // server //
 
             KyberPackedPKI keysServer = generateKyberKeys(paramsK);
             byte[] s1Prime = keysServer.getPackedPrivateKey();
-            byte[] pjS = keysServer.getPackedPublicKey();
-
-            // p_i' = Compress_q(p_i, d_u) // client //
-
-            int du = 11;
-            byte[] piPrime = compressPoly(Utils.byteArrayToShortArray(piC), du);
-
-            // Send i, p_i' to the server. //
-
-            // p_i = Decompress_q(p_i', d_u) // server //
-
-            short[] piS = decompressPoly(piPrime, du);
+            byte[] pj = keysServer.getPackedPublicKey();
 
             // u <- XOF(H(p_i || p_j)) // server //
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
             md.reset();
-            byte[] intermediateHashUServer = md.digest(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), pjS));
+            byte[] intermediateHashUServer = md.digest(Utils.concatByteArrays(pi, pj));
             byte[] uS = Utils.nBytesFromShake128(intermediateHashUServer, 2 * KyberParams.paramsPolyBytes);
 
             // k_j <- (v + p_i) s_1' + uv + e_1'' // server //
 
-            short[] kj = polyBaseMulMont(polyAdd(vS, piS), Utils.byteArrayToShortArray(s1Prime));
+            short[] kj = polyBaseMulMont(polyAdd(vS, Utils.byteArrayToShortArray(pi)), Utils.byteArrayToShortArray(s1Prime));
             polyBaseMulMont(Utils.byteArrayToShortArray(uS), vS);
             kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(uS), vS));
             kj = polyAdd(kj, Utils.createShortArrayFromInt(e1DoublePrime, 2 * KyberParams.paramsPolyBytes));
@@ -164,27 +153,19 @@ public class Main {
             int vPrime = Utils.ACon(Utils.bytesToDouble(Utils.shortArrayToByteArray(kj)), Utils.bytesToDouble(sigmaj), q, m, g);
             // am not the happiest with this - FIX it
 
-            // p_j' = Compress_q(p_j, d_v) // server //
-            int dv = 3;
-            byte[] pjPrime = compressPoly(Utils.byteArrayToShortArray(pjS), dv);
-
             // Send salt, p_j', v', H(salt, p_j', v') to the client. //
-
-            // p_j = Decompress_q(p_j', d_v) // client //
-
-            short[] pjC = decompressPoly(pjPrime, dv);
 
             // u <- XOF(H(p_i || p_j)) // client //
 
             md.reset();
-            byte[] intermediateHashUClient = md.digest(Utils.concatByteArrays(piC, Utils.shortArrayToByteArray(pjC)));
+            byte[] intermediateHashUClient = md.digest(Utils.concatByteArrays(pi, pj));
             byte[] uC = Utils.nBytesFromShake128(intermediateHashUClient, 2 * KyberParams.paramsPolyBytes);
 
             // v <- as_v + e_v \in R_q // client // that is vC
 
             // k_i <- (p_j - v) * (s_v + s_1 ) + uv
 
-            short[] fstBracket = polySub(pjC, vC);
+            short[] fstBracket = polySub(Utils.byteArrayToShortArray(pj), vC);
             short[] sndBracket = polyAdd(Utils.createShortArrayFromInt(svC, 2 * KyberParams.paramsPolyBytes), Utils.byteArrayToShortArray(s1));
 
             short[] ki = polyAdd(polyBaseMulMont(fstBracket, sndBracket), polyBaseMulMont(Utils.byteArrayToShortArray(uC), vC));
@@ -211,10 +192,10 @@ public class Main {
 
             // Save p_i and p_js //
 
-            protocol.getClientsKnowledge().setPi(piC);
-            protocol.getClientsKnowledge().setPj(pjC);
-            protocol.getServersKnowledge().setPi(piS);
-            protocol.getServersKnowledge().setPj(pjS);
+            protocol.getClientsKnowledge().setPi(pi);
+            protocol.getClientsKnowledge().setPj(pj);
+            protocol.getServersKnowledge().setPi(pi);
+            protocol.getServersKnowledge().setPj(pj);
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
@@ -225,10 +206,10 @@ public class Main {
     private static void mutualVerification(ProtocolsKnowledge protocol) {
 
         byte[] piC = protocol.getClientsKnowledge().getPi();
-        short[] pjC = protocol.getClientsKnowledge().getPj();
+        byte[] pjC = protocol.getClientsKnowledge().getPj();
         byte[] ski = protocol.getClientsKnowledge().getSharedSecret();
 
-        short[] piS = protocol.getServersKnowledge().getPi();
+        byte[] piS = protocol.getServersKnowledge().getPi();
         byte[] pjS = protocol.getServersKnowledge().getPj();
         byte[] skj = protocol.getServersKnowledge().getSharedSecret();
 
@@ -238,14 +219,14 @@ public class Main {
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
             md.reset();
-            byte[] m1 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(piC, Utils.shortArrayToByteArray(pjC)), ski));
+            byte[] m1 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(piC, pjC), ski));
 
             // Send M_1 to the server. //
 
             // M_2 = SHA3-256(p_i || p_j || sk_j ) // server //
 
             md.reset();
-            byte[] m2 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), pjS), skj));
+            byte[] m2 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(piS, pjS), skj));
 
             // Verify M_2 = M_1 // server //
 
@@ -254,7 +235,7 @@ public class Main {
             // M_3 = SHA3-256(p_i || M_2 || sk_j ) // server //
 
             md.reset();
-            byte[] m3 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(Utils.shortArrayToByteArray(piS), m2), skj));
+            byte[] m3 = md.digest(Utils.concatByteArrays(Utils.concatByteArrays(piS, m2), skj));
 
             // Send M_3 to the client. //
 
