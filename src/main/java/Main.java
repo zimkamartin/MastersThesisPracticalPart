@@ -82,18 +82,16 @@ public class Main {
             // s_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
             // also because of the computation of v, s_v should be \in R_q and use polyBaseMulMont
 
-            sv = sr.nextInt();  // FIX it
+            sv = sr.nextInt(Short.MAX_VALUE);  // FIX it
 
             // e_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
             // also because of the computation of v, e_v should be \in R_q and use polyBaseMulMont
 
-            int ev = sr.nextInt();  // FIX it
+            int ev = sr.nextInt(Short.MAX_VALUE);  // FIX it
 
             // v <- as_v + e_v \in R_q //
 
             short[] aShort = Utils.byteArrayToShortArray(a);
-            sv = sv % Short.MAX_VALUE;
-            ev = ev % Short.MAX_VALUE;
             short[] svShort = Utils.createShortArrayFromInt(sv, KyberParams.paramsPolyBytes);  // NO idea what should be the size
             short[] evShort = Utils.createShortArrayFromInt(ev, KyberParams.paramsPolyBytes);
             short[] asv = polyBaseMulMont(aShort, svShort);
