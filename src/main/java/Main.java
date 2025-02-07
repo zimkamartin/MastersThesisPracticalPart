@@ -124,66 +124,26 @@ public class Main {
             byte[] s1Prime = keysServer.getPackedPrivateKey();
             byte[] pj = keysServer.getPackedPublicKey();
 
-            // u <- XOF(H(p_i || p_j)) // server //
-
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
-            md.reset();
-            byte[] intermediateHashUServer = md.digest(Utils.concatByteArrays(pi, pj));
-            byte[] uS = Utils.nBytesFromShake128(intermediateHashUServer, 2 * KyberParams.paramsPolyBytes);
-
-            // k_j <- (v + p_i) s_1' + uv + e_1'' // server //
-
-            short[] kj = polyBaseMulMont(polyAdd(vS, Utils.byteArrayToShortArray(pi)), Utils.byteArrayToShortArray(s1Prime));
-            polyBaseMulMont(Utils.byteArrayToShortArray(uS), vS);
-            kj = polyAdd(kj, polyBaseMulMont(Utils.byteArrayToShortArray(uS), vS));
-            kj = polyAdd(kj, Utils.createShortArrayFromInt(e1DoublePrime, 2 * KyberParams.paramsPolyBytes));
 
             // sigma_j \in ?_m // server // find out how to generate sigma_j and FIX this
 
-            byte[] sigmaj = new byte[504];  // NO idea what should be the size
-            sr.nextBytes(sigmaj);
-
-            // v' <- ACon(k_j, sigma_j, params) // server //
-            // params = (q, m, g, d, aux) - aux is NOT needed in my opinion
-
-            double q = 12289;
-            double m = 16;
-            double g = 256;
-
-            int vPrime = Utils.ACon(Utils.bytesToDouble(Utils.shortArrayToByteArray(kj)), Utils.bytesToDouble(sigmaj), q, m, g);
-            // am not the happiest with this - FIX it
+            byte[] sigma = new byte[504];  // NO idea what should be the size
+            sr.nextBytes(sigma);
 
             // Send salt, p_j', v', H(salt, p_j', v') to the client. //
 
-            // u <- XOF(H(p_i || p_j)) // client //
-
-            md.reset();
-            byte[] intermediateHashUClient = md.digest(Utils.concatByteArrays(pi, pj));
-            byte[] uC = Utils.nBytesFromShake128(intermediateHashUClient, 2 * KyberParams.paramsPolyBytes);
-
             // v <- as_v + e_v \in R_q // client // that is vC
-
-            // k_i <- (p_j - v) * (s_v + s_1 ) + uv
-
-            short[] fstBracket = polySub(Utils.byteArrayToShortArray(pj), vC);
-            short[] sndBracket = polyAdd(Utils.createShortArrayFromInt(svC, 2 * KyberParams.paramsPolyBytes), Utils.byteArrayToShortArray(s1));
-
-            short[] ki = polyAdd(polyBaseMulMont(fstBracket, sndBracket), polyBaseMulMont(Utils.byteArrayToShortArray(uC), vC));
-
-            // sigma_i <- ARec(k_i, v', params) // client //
-            // params = (q, m, g, d, aux) - aux is NOT needed in my opinion
-
-            int sigmai = Utils.ARec(Utils.bytesToDouble(Utils.shortArrayToByteArray(ki)), vPrime, q, m, g);
 
             // sk_i <- SHA3-256(sigma_i) // client //
 
             md.reset();
-            byte[] ski = md.digest(Utils.intToByteArray(sigmai));
+            byte[] ski = md.digest(sigma);
 
             // sk_j <- SHA3-256(sigma_j) // server //
 
             md.reset();
-            byte[] skj = md.digest(sigmaj);
+            byte[] skj = md.digest(sigma);
 
             // Save shared secrets //
 
