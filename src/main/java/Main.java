@@ -61,23 +61,12 @@ public class Main {
 
             String i = "identity123";
             String pwd = "password123";
-            String iPwdConcatenated = i.concat(pwd);
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
-            md.reset();
-            byte[] intermediateHashSeed = md.digest(iPwdConcatenated.getBytes());
 
             // Create random input of bytes for generateUniform
             salt = new byte[64];  // NO idea what should be the size
             sr.nextBytes(salt);
-
-            md.reset();
-            byte[] seed1 = md.digest(Utils.concatByteArrays(salt, intermediateHashSeed));
-
-            // seed2 = H(seed1) //
-
-            md.reset();
-            byte[] seed2 = md.digest(seed1);
 
             // s_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
             // also because of the computation of v, s_v should be \in R_q and use polyBaseMulMont
