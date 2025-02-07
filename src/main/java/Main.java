@@ -60,7 +60,6 @@ public class Main {
             // seed1 = H(salt || H(I || pwd)) //
 
             String i = "identity123";
-            String pwd = "password123";
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
 
