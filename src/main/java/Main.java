@@ -1,13 +1,13 @@
 import com.swiftcryptollc.crypto.provider.KyberJCE;
 import com.swiftcryptollc.crypto.provider.KyberPackedPKI;
+import com.swiftcryptollc.crypto.provider.kyber.KyberParams;
 
 import java.security.Security;
 import java.util.Arrays;
 
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateKyberKeys;
 import static com.swiftcryptollc.crypto.provider.kyber.Poly.*;
-import static java.lang.Math.abs;
-import static java.lang.Math.round;
+import static java.lang.Math.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -18,6 +18,22 @@ public class Main {
 
         System.out.print("Everything went well...");
 
+    }
+
+    public static double log(double base, double x) {  // implemented by ChatGPT
+        return Math.log(x) / Math.log(base);
+    }
+
+    private static boolean checkCompressOutput(byte[] compressed, int q) {
+        int d = (int) ceil(log(2, q)) - 1;
+        for (byte c : compressed) {
+            int cInt = (int) c;
+            if (cInt < 0 || (2^d) < cInt) {
+                System.out.println(cInt);
+                return false;
+            }
+        }
+        return true;
     }
 
     // Based on the Kyber's documentation, the following must hold for functions Compress and Decompress:
@@ -50,21 +66,18 @@ public class Main {
             KyberPackedPKI keysClient = generateKyberKeys(paramsK);
             byte[] piC = keysClient.getPackedPublicKey();
 
-            // KEY -> (s_1', p_j) // server //
-
-            KyberPackedPKI keysServer = generateKyberKeys(paramsK);
-            byte[] pjS = keysServer.getPackedPublicKey();
-
             // p_i' = Compress_q(p_i, d_u) // client //
 
             int du = 11;
             byte[] piPrime = compressPoly(Utils.byteArrayToShortArray(piC), du);
-
-            // Send i, p_i' to the server. //
+            System.out.println(checkCompressOutput(piPrime, KyberParams.paramsQ));
 
             // p_i = Decompress_q(p_i', d_u) // server //
 
             short[] piS = decompressPoly(piPrime, du);
+
+            System.out.println(Arrays.toString(piC));
+            System.out.println(Arrays.toString(piS));
 
 
         } catch (Exception ex) {
