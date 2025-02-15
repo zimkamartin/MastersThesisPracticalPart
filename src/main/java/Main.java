@@ -38,6 +38,7 @@ public class Main {
         try {
 
             // seed <- R_q //
+            // seed = polynomial in R_q
 
             // Create random input of bytes for generateUniform
             byte[] seedGU = new byte[504];  // NO idea what should be the size
@@ -53,6 +54,7 @@ public class Main {
             seed = uniformRandom.getUniformR();  // length = 384 because of KyberParams.paramsPolyBytes
 
             // a = SHAKE-128(seed) //
+            // a = square matrix of polynomials
 
             byte[] a = Utils.nBytesFromShake128(Utils.shortArrayToByteArray(seed), 2 * KyberParams.paramsPolyBytes);
 
@@ -62,15 +64,18 @@ public class Main {
 
             // s_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
             // also because of the computation of v, s_v should be \in R_q and use polyBaseMulMont
+            // s_v = vector of polynomials
 
             sv = sr.nextInt(Short.MAX_VALUE);  // FIX it
 
             // e_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
             // also because of the computation of v, e_v should be \in R_q and use polyBaseMulMont
+            // e_v = vector of polynomials
 
             int ev = sr.nextInt(Short.MAX_VALUE);  // FIX it
 
             // v <- as_v + e_v \in R_q //
+            // v = vector of polynomials
 
             short[] aShort = Utils.byteArrayToShortArray(a);
             short[] svShort = Utils.createShortArrayFromInt(sv, KyberParams.paramsPolyBytes);  // NO idea what should be the size
