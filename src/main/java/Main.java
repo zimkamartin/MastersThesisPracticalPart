@@ -107,11 +107,14 @@ public class Main {
             SecureRandom sr = SecureRandom.getInstanceStrong();
 
             // e_1'' <- chi // server //
+            // e_1'' = vector of polynomials
 
             // again chi should be Discrete Gaussian distribution. FIX it
             int e1DoublePrime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
 
             // KEY -> (s_1, p_i) // client //
+            // s_1 = vector of polynomials
+            // p_i = vector of polynomials
 
             int paramsK = 4;
             KyberPackedPKI keysClient = generateKyberKeys(paramsK);
@@ -119,6 +122,8 @@ public class Main {
             byte[] pi = keysClient.getPackedPublicKey();
 
             // KEY -> (s_1', p_j) // server //
+            // s_1' = vector of polynomials
+            // p_j  = vector of polynomials
 
             KyberPackedPKI keysServer = generateKyberKeys(paramsK);
             byte[] s1Prime = keysServer.getPackedPrivateKey();
@@ -126,7 +131,8 @@ public class Main {
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
 
-            // sigma_j \in ?_m // server // find out how to generate sigma_j and FIX this
+            // sigma_j \in Z_m // server //
+            // sigma_j = int % m
 
             byte[] sigma = new byte[504];  // NO idea what should be the size
             sr.nextBytes(sigma);
@@ -134,6 +140,7 @@ public class Main {
             // Send salt, p_j', v', H(salt, p_j', v') to the client. //
 
             // v <- as_v + e_v \in R_q // client // that is vC
+            // v = vector of polynomials
 
             // sk_i <- SHA3-256(sigma_i) // client //
 
