@@ -30,7 +30,7 @@ public class Main {
         // Everything is on the client's side.
 
         short[] validator = new short[64];  // NO idea what should be the size
-        short[] seed = new short[KyberParams.paramsPolyBytes];
+        short[] seed = new short[KyberParams.paramsPolyBytes];  // size determined based on generateUniform function output
         int sv = 0;
 
         byte[] hashedIdentity = new byte[0];
@@ -41,17 +41,18 @@ public class Main {
             // seed = polynomial in R_q
 
             // Create random input of bytes for generateUniform
-            byte[] seedGU = new byte[504];  // NO idea what should be the size
+            byte[] seedGU = new byte[1152];  // recommended size by ChatGPT
             SecureRandom sr = SecureRandom.getInstanceStrong();
             sr.nextBytes(seedGU);
 
-            // Use generateUniform = equivalent of Parse in official Kyber:
+            // Use generateUniform = (almost) equivalent of Parse in official Kyber:
             // "Kyber uses a deterministic approach to sample elements in Rq that are statistically close
             // to a uniformly random distribution. For this sampling we use a function Parse"
+            // HOWEVER in my opinion generateUniform does NOT return NTT representation of polynomial.
             KyberUniformRandom uniformRandom = new KyberUniformRandom();
-            generateUniform(uniformRandom, seedGU, 504, KyberParams.paramsN);
+            generateUniform(uniformRandom, seedGU, seedGU.length, KyberParams.paramsPolyBytes);
 
-            seed = uniformRandom.getUniformR();  // length = 384 because of KyberParams.paramsPolyBytes
+            seed = uniformRandom.getUniformR();
 
             // a = SHAKE-128(seed) //
             // a = square matrix of polynomials
