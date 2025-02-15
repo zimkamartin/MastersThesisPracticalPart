@@ -102,11 +102,6 @@ public class Main {
         // p{i,j}C = p_{i,j} on the client's side, p{i,j}S = p_{i,j} on the server's side.
         // uC = u on the client's side, uS = u on the server's side.
 
-        int svC = protocol.getClientsKnowledge().getSv();
-        short[] vC = protocol.getClientsKnowledge().getValidator();
-
-        short[] vS = protocol.getServersKnowledge().getValidator();
-
         try {
 
             SecureRandom sr = SecureRandom.getInstanceStrong();
