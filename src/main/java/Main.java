@@ -8,8 +8,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Arrays;
 
-import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateKyberKeys;
-import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateUniform;
+import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.*;
 import static com.swiftcryptollc.crypto.provider.kyber.Poly.*;
 
 public class Main {
@@ -29,6 +28,7 @@ public class Main {
 
         // Everything is on the client's side.
 
+        int paramsK = 4;
         short[] validator = new short[64];  // NO idea what should be the size
         short[] seed = new short[KyberParams.paramsPolyBytes];  // size determined based on generateUniform function output
         int sv = 0;
@@ -56,8 +56,10 @@ public class Main {
 
             // a = SHAKE-128(seed) //
             // a = square matrix of polynomials
-
-            byte[] a = Utils.nBytesFromShake128(Utils.shortArrayToByteArray(seed), 2 * KyberParams.paramsPolyBytes);
+            // paramsK x paramsK of polynomials (arrays with length KyberParams.paramsPolyByte (384)
+            // - I would put there KyberParams.paramsN (256), but in Java's Kyber implementation, they choose that)
+            System.out.println(Utils.shortArrayToByteArray(seed).length);
+            short[][][] a = generateMatrix(Utils.shortArrayToByteArray(seed), false, paramsK);
 
             String i = "identity123";
 
