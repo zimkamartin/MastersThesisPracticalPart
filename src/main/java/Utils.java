@@ -76,7 +76,7 @@ public class Utils {
         return ByteBuffer.allocate(4).putInt(input).array();
     }
 
-    public static void fillSvEv(short[][] toFill, byte[] noiseSeed, int paramsK) {  // extracted rows 267 - 275 from
+    public static void fillWithCBD(short[][] toFill, byte[] noiseSeed, int paramsK) {  // extracted rows 267 - 275 from
     // https://github.com/fisherstevenk/kyberJCE/blob/main/src/main/java/com/swiftcryptollc/crypto/provider/kyber/Indcpa.java
         byte nonce = (byte) 0;
         for (int i = 0; i < paramsK; i++) {

@@ -60,6 +60,7 @@ public class Main {
             // a = square matrix of polynomials
             // paramsK x paramsK of polynomials (arrays with length KyberParams.paramsPolyByte (384)
             // - I would put there KyberParams.paramsN (256), but in Java's Kyber implementation, they choose that)
+
             short[][][] a = generateMatrix(Utils.shortArrayToByteArray(seed), false, paramsK);
 
             // seed1 = H(salt || H(I || pwd)) //
@@ -77,6 +78,7 @@ public class Main {
             byte[] seed1 = md.digest(Utils.concatByteArrays(salt, intermediateHashSeed));
 
             // seed2 = H(seed1) //
+
             md.reset();
             byte[] seed2 = md.digest(seed1);
 
@@ -84,13 +86,13 @@ public class Main {
             // s_v = vector of polynomials
 
             short[][] sv = generateNewPolyVector(paramsK);
-            Utils.fillSvEv(sv, seed1, paramsK);
+            Utils.fillWithCBD(sv, seed1, paramsK);
 
             // e_v <- PRNG(seed1) // PRNG is CBD, same as in Kyber
             // e_v = vector of polynomials
 
             short[][] ev = generateNewPolyVector(paramsK);
-            Utils.fillSvEv(ev, seed2, paramsK);
+            Utils.fillWithCBD(ev, seed2, paramsK);
 
             // v <- as_v + e_v \in R_q //
             // v = vector of polynomials
@@ -127,21 +129,25 @@ public class Main {
         // p{i,j}C = p_{i,j} on the client's side, p{i,j}S = p_{i,j} on the server's side.
         // uC = u on the client's side, uS = u on the server's side.
 
+        int paramsK = 4;
+
         try {
 
             SecureRandom sr = SecureRandom.getInstanceStrong();
 
-            // e_1'' <- chi // server //
+            // e_1'' <- chi // server // chi is CBD, same as in Kyber
             // e_1'' = vector of polynomials
 
-            // again chi should be Discrete Gaussian distribution. FIX it
-            int e1DoublePrime = sr.nextInt(2); // Generates 0 or 1 with 50% probability
+            short[][] e1DoublePrime = generateNewPolyVector(paramsK);
+            // Create random input of bytes for seed to CBD
+            byte[] seedE1DoublePrime = new byte[32];
+            sr.nextBytes(seedE1DoublePrime);
+            Utils.fillWithCBD(e1DoublePrime, seedE1DoublePrime, paramsK);
 
             // KEY -> (s_1, p_i) // client //
             // s_1 = vector of polynomials
             // p_i = vector of polynomials
 
-            int paramsK = 4;
             KyberPackedPKI keysClient = generateKyberKeys(paramsK);
             byte[] s1 = keysClient.getPackedPrivateKey();
             byte[] pi = keysClient.getPackedPublicKey();
