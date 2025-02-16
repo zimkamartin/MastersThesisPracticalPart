@@ -29,7 +29,7 @@ public class Main {
         // Everything is on the client's side.
 
         int paramsK = 4;
-        short[] validator = new short[64];  // NO idea what should be the size
+        //short[] validator = new short[64];  // NO idea what should be the size
         short[] seed = new short[KyberParams.paramsPolyBytes];  // size determined based on generateUniform function output
 
         byte[] hashedIdentity = new byte[0];
@@ -57,19 +57,18 @@ public class Main {
             // a = square matrix of polynomials
             // paramsK x paramsK of polynomials (arrays with length KyberParams.paramsPolyByte (384)
             // - I would put there KyberParams.paramsN (256), but in Java's Kyber implementation, they choose that)
-            System.out.println(Utils.shortArrayToByteArray(seed).length);
             short[][][] a = generateMatrix(Utils.shortArrayToByteArray(seed), false, paramsK);
 
             // seed1 = H(salt || H(I || pwd)) //
             // salt = byte[8], I, pwd = string
 
-            String i = "identity123";
+            String identity = "identity123";
             String pwd = "password123";
-            String iPwdConcatenated = i.concat(pwd);
+            String identityPwdConcatenated = identity.concat(pwd);
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
             md.reset();
-            byte[] intermediateHashSeed = md.digest(iPwdConcatenated.getBytes());
+            byte[] intermediateHashSeed = md.digest(identityPwdConcatenated.getBytes());
 
             byte[] salt = new byte[8];
             sr.nextBytes(salt);
@@ -96,12 +95,17 @@ public class Main {
             // v <- as_v + e_v \in R_q //
             // v = vector of polynomials
 
-            short[] aShort = Utils.byteArrayToShortArray(a);
-            short[] svShort = Utils.createShortArrayFromInt(sv, KyberParams.paramsPolyBytes);  // NO idea what should be the size
-            short[] evShort = Utils.createShortArrayFromInt(ev, KyberParams.paramsPolyBytes);
-            short[] asv = polyBaseMulMont(aShort, svShort);
+            short[][] v = generateNewPolyVector(paramsK);
 
-            validator = polyAdd(asv, evShort);
+            sv = polyVectorNTT(sv, paramsK);
+            sv = polyVectorReduce(sv, paramsK);
+            ev = polyVectorNTT(ev, paramsK);
+            for (int i = 0; i < paramsK; i++) {
+                short[] temp = polyVectorPointWiseAccMont(a[i], sv, paramsK);
+                v[i] = polyToMont(temp);
+            }
+            v = polyVectorAdd(v, ev, paramsK);
+            v = polyVectorReduce(v, paramsK);
 
             // Send H(I), salt, v to the server. //
             md.reset();
