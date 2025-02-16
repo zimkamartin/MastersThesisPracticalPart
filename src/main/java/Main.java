@@ -31,7 +31,6 @@ public class Main {
         int paramsK = 4;
         short[] validator = new short[64];  // NO idea what should be the size
         short[] seed = new short[KyberParams.paramsPolyBytes];  // size determined based on generateUniform function output
-        int sv = 0;
 
         byte[] hashedIdentity = new byte[0];
 
@@ -65,17 +64,17 @@ public class Main {
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
 
-            // s_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
-            // also because of the computation of v, s_v should be \in R_q and use polyBaseMulMont
+            // s_v <- PRNG(seed1) // PRNG is CBD, same as in Kyber
             // s_v = vector of polynomials
 
-            sv = sr.nextInt(Short.MAX_VALUE);  // FIX it
+            short[][] sv = generateNewPolyVector(paramsK);
+            Utils.fillSvEv(sv, new byte[8], paramsK);
 
-            // e_v <- PRNG(seed1) // WHAT should be PRNG? If Discrete Gaussian distribution, then how to use it?
-            // also because of the computation of v, e_v should be \in R_q and use polyBaseMulMont
+            // e_v <- PRNG(seed1) // PRNG is CBD, same as in Kyber
             // e_v = vector of polynomials
 
-            int ev = sr.nextInt(Short.MAX_VALUE);  // FIX it
+            short[][] ev = generateNewPolyVector(paramsK);
+            Utils.fillSvEv(ev, new byte[8], paramsK);
 
             // v <- as_v + e_v \in R_q //
             // v = vector of polynomials
