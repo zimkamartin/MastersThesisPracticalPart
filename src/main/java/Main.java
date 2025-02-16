@@ -60,15 +60,28 @@ public class Main {
             System.out.println(Utils.shortArrayToByteArray(seed).length);
             short[][][] a = generateMatrix(Utils.shortArrayToByteArray(seed), false, paramsK);
 
+            // seed1 = H(salt || H(I || pwd)) //
+            // salt = byte[8], I, pwd = string
+
             String i = "identity123";
+            String pwd = "password123";
+            String iPwdConcatenated = i.concat(pwd);
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
+            md.reset();
+            byte[] intermediateHashSeed = md.digest(iPwdConcatenated.getBytes());
+
+            byte[] salt = new byte[8];
+            sr.nextBytes(salt);
+
+            md.reset();
+            byte[] seed1 = md.digest(Utils.concatByteArrays(salt, intermediateHashSeed));
 
             // s_v <- PRNG(seed1) // PRNG is CBD, same as in Kyber
             // s_v = vector of polynomials
 
             short[][] sv = generateNewPolyVector(paramsK);
-            Utils.fillSvEv(sv, new byte[8], paramsK);
+            Utils.fillSvEv(sv, seed1, paramsK);
 
             // e_v <- PRNG(seed1) // PRNG is CBD, same as in Kyber
             // e_v = vector of polynomials
