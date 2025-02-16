@@ -149,16 +149,16 @@ public class Main {
             // p_i = vector of polynomials
 
             KyberPackedPKI keysClient = generateKyberKeys(paramsK);
-            byte[] s1 = keysClient.getPackedPrivateKey();
-            byte[] pi = keysClient.getPackedPublicKey();
+            byte[] s1Packed = keysClient.getPackedPrivateKey();
+            byte[] piPacked = keysClient.getPackedPublicKey();
 
             // KEY -> (s_1', p_j) // server //
             // s_1' = vector of polynomials
             // p_j  = vector of polynomials
 
             KyberPackedPKI keysServer = generateKyberKeys(paramsK);
-            byte[] s1Prime = keysServer.getPackedPrivateKey();
-            byte[] pj = keysServer.getPackedPublicKey();
+            byte[] s1PrimePacked = keysServer.getPackedPrivateKey();
+            byte[] pjPacked = keysServer.getPackedPublicKey();
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
 
@@ -190,10 +190,10 @@ public class Main {
 
             // Save p_i and p_js //
 
-            protocol.getClientsKnowledge().setPi(pi);
-            protocol.getClientsKnowledge().setPj(pj);
-            protocol.getServersKnowledge().setPi(pi);
-            protocol.getServersKnowledge().setPj(pj);
+            protocol.getClientsKnowledge().setPi(piPacked);
+            protocol.getClientsKnowledge().setPj(pjPacked);
+            protocol.getServersKnowledge().setPi(piPacked);
+            protocol.getServersKnowledge().setPj(pjPacked);
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
