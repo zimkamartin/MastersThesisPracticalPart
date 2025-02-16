@@ -56,7 +56,7 @@ public class Main {
 
             seed = uniformRandom.getUniformR();
 
-            // a = SHAKE-128(seed) //
+            // a = SHAKE-128(seed) // ! THERE IS EXTRA Parse IN COMPARISON WITH KSRP ARTICLE !
             // a = square matrix of polynomials
             // paramsK x paramsK of polynomials (arrays with length KyberParams.paramsPolyByte (384)
             // - I would put there KyberParams.paramsN (256), but in Java's Kyber implementation, they choose that)
@@ -160,7 +160,16 @@ public class Main {
             byte[] s1PrimePacked = keysServer.getPackedPrivateKey();
             byte[] pjPacked = keysServer.getPackedPublicKey();
 
+            // u = XOF(H(p_i || p_j)) // server //
+            // u = vector of polynomials
+
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
+
+            md.reset();
+            byte[] hashedPublics = md.digest(Utils.concatByteArrays(piPacked, pjPacked));
+            byte[] serializedU = Utils.nBytesFromShake128(hashedPublics, 1152);  // ! % q MUST BE APPLIED ! // TBH no idea why 1152 works
+            short[][] u = polyVectorFromBytes(serializedU, paramsK);
+            Utils.applyModulo(u, KyberParams.paramsQ);
 
             // sigma_j \in Z_m // server //
             // sigma_j = int % m
