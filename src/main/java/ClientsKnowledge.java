@@ -1,28 +1,28 @@
 public class ClientsKnowledge {
 
+    private final String identity;
+    private final String password;
     private final short[] seed;
-    private final int sv;
-    private final short[] validator;
+    private final byte[] packedValidator;
     private byte[] sharedSecret;
     private byte[] pi;
     private byte[] pj;
 
-    public ClientsKnowledge(short[] seed, int sv, short[] validator) {
+    public ClientsKnowledge(String identity, String password, short[] seed, byte[] packedValidator) {
+        this.identity = identity;
+        this.password = password;
         this.seed = seed;
-        this.sv = sv;
-        this.validator = validator;
+        this.packedValidator = packedValidator;
     }
+
+    public String getIdentity() { return identity; }
 
     public short[] getSeed() {
         return seed;
     }
 
-    public int getSv() {
-        return sv;
-    }
-
-    public short[] getValidator() {
-        return validator;
+    public byte[] getPackedValidator() {
+        return packedValidator;
     }
 
     public void setSharedSecret(byte[] sharedSecret) {

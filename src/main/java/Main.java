@@ -2,6 +2,7 @@ import com.swiftcryptollc.crypto.provider.KyberJCE;
 import com.swiftcryptollc.crypto.provider.KyberPackedPKI;
 import com.swiftcryptollc.crypto.provider.KyberUniformRandom;
 import com.swiftcryptollc.crypto.provider.kyber.KyberParams;
+import com.swiftcryptollc.crypto.provider.kyber.Poly;
 
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -29,9 +30,11 @@ public class Main {
         // Everything is on the client's side.
 
         int paramsK = 4;
-        //short[] validator = new short[64];  // NO idea what should be the size
         short[] seed = new short[KyberParams.paramsPolyBytes];  // size determined based on generateUniform function output
-
+        String identity = "identity123";
+        String pwd = "password123";
+        byte[] salt = new byte[8];
+        byte[] vPacked = new byte[paramsK * KyberParams.paramsPolyBytes];
         byte[] hashedIdentity = new byte[0];
 
         try {
@@ -62,15 +65,12 @@ public class Main {
             // seed1 = H(salt || H(I || pwd)) //
             // salt = byte[8], I, pwd = string
 
-            String identity = "identity123";
-            String pwd = "password123";
             String identityPwdConcatenated = identity.concat(pwd);
 
             MessageDigest md = MessageDigest.getInstance("SHA3-256");
             md.reset();
             byte[] intermediateHashSeed = md.digest(identityPwdConcatenated.getBytes());
 
-            byte[] salt = new byte[8];
             sr.nextBytes(salt);
 
             md.reset();
@@ -108,15 +108,17 @@ public class Main {
             v = polyVectorReduce(v, paramsK);
 
             // Send H(I), salt, v to the server. //
+
+            vPacked = Poly.polyVectorToBytes(v, paramsK);
             md.reset();
-            hashedIdentity = md.digest(i.getBytes());
+            hashedIdentity = md.digest(identity.getBytes());
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
             ex.printStackTrace();
         }
 
-        return new ProtocolsKnowledge(new ClientsKnowledge(seed, sv, validator), new ServersKnowledge(hashedIdentity, validator));
+        return new ProtocolsKnowledge(new ClientsKnowledge(identity, pwd, seed, vPacked), new ServersKnowledge(hashedIdentity, salt, vPacked));
     }
 
     private static void authenticatedKeyExchange(ProtocolsKnowledge protocol) {
