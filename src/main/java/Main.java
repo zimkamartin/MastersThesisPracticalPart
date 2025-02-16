@@ -77,6 +77,10 @@ public class Main {
             md.reset();
             byte[] seed1 = md.digest(Utils.concatByteArrays(salt, intermediateHashSeed));
 
+            // seed2 = H(seed1) //
+            md.reset();
+            byte[] seed2 = md.digest(seed1);
+
             // s_v <- PRNG(seed1) // PRNG is CBD, same as in Kyber
             // s_v = vector of polynomials
 
@@ -87,7 +91,7 @@ public class Main {
             // e_v = vector of polynomials
 
             short[][] ev = generateNewPolyVector(paramsK);
-            Utils.fillSvEv(ev, new byte[8], paramsK);
+            Utils.fillSvEv(ev, seed2, paramsK);
 
             // v <- as_v + e_v \in R_q //
             // v = vector of polynomials
