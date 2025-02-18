@@ -169,7 +169,7 @@ public class Main {
             byte[] hashedPublics = md.digest(Utils.concatByteArrays(piPacked, pjPacked));
             byte[] serializedU = Utils.nBytesFromShake128(hashedPublics, 1152);  // ! % q MUST BE APPLIED ! // TBH no idea why 1152 works
             short[][] u = polyVectorFromBytes(serializedU, paramsK);
-            Utils.applyModulo(u, KyberParams.paramsQ);
+            polyVectorReduce(u, paramsK);
 
             // sigma_j \in Z_m // server //
             // sigma_j = int % m
