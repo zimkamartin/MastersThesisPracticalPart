@@ -99,15 +99,18 @@ public class Main {
 
             short[][] v = generateNewPolyVector(paramsK);
 
-            sv = polyVectorNTT(sv, paramsK);
             sv = polyVectorReduce(sv, paramsK);
+            sv = polyVectorNTT(sv, paramsK);
+            ev = polyVectorReduce(ev, paramsK);
             ev = polyVectorNTT(ev, paramsK);
             for (int i = 0; i < paramsK; i++) {
+                a[i] = polyVectorNTT(a[i], paramsK);
                 short[] temp = polyVectorPointWiseAccMont(a[i], sv, paramsK);
                 v[i] = polyToMont(temp);
             }
             v = polyVectorAdd(v, ev, paramsK);
             v = polyVectorReduce(v, paramsK);
+            v = polyVectorInvNTTMont(v, paramsK);
 
             // Send H(I), salt, v to the server. //
 
