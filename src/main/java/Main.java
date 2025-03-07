@@ -6,6 +6,8 @@ import java.util.HexFormat;
 
 public class Main {
 
+    // Source for KAT: https://pq-crystals.org/kyber/resources.shtml, NIST Submission Package for round 3
+
     // In KyberJCE.java is:
     // @ Override
     // public Object run() {
