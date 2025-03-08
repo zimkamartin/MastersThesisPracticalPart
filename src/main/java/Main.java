@@ -88,18 +88,18 @@ public class Main {
         }
     }
 
-    public static int ACon(double k1, double sigma1, double q, double m, double g) {
+    public static long ACon(double k1, double sigma1, double q, double m, double g) {
         // round(sigma_1 * q / m)
         long roundedTerm = Math.round(sigma1 * q / m);
         // floor(g(k_1 + roundedTerm) / q)
         long flooredTerm = (long) Math.floor(g * (k1 + roundedTerm) / q);
-        return (int) (flooredTerm % g);
+        return flooredTerm % (long) g;
     }
 
-    public static int ARec(double k2, double v, double q, double m, double g) {
+    public static long ARec(double k2, double v, double q, double m, double g) {
         // floor(m * (v / g - k_2 / q))
         long flooredTerm = (long) Math.floor(m * (v / g - k2 / q));
-        return (int) (flooredTerm % m);
+        return flooredTerm % (long) m;
     }
 
     private static void AConARec() {
