@@ -16,6 +16,8 @@ public class Main {
 
         // CompressDecompress();
 
+        AConARec();
+
         System.out.print("Everything went well...");
 
     }
@@ -84,5 +86,23 @@ public class Main {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
             ex.printStackTrace();
         }
+    }
+
+    public static int ACon(double k1, double sigma1, double q, double m, double g) {
+        // round(sigma_1 * q / m)
+        long roundedTerm = Math.round(sigma1 * q / m);
+        // floor(g(k_1 + roundedTerm) / q)
+        long flooredTerm = (long) Math.floor(g * (k1 + roundedTerm) / q);
+        return (int) (flooredTerm % g);
+    }
+
+    public static int ARec(double k2, double v, double q, double m, double g) {
+        // floor(m * (v / g - k_2 / q))
+        long flooredTerm = (long) Math.floor(m * (v / g - k2 / q));
+        return (int) (flooredTerm % m);
+    }
+
+    private static void AConARec() {
+
     }
 }
