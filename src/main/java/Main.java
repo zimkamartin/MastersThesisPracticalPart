@@ -14,7 +14,7 @@ public class Main {
         Security.setProperty("crypto.policy", "unlimited");
         Security.addProvider(new KyberJCE());
 
-        authenticatedKeyExchange();
+        // CompressDecompress();
 
         System.out.print("Everything went well...");
 
@@ -56,7 +56,7 @@ public class Main {
         return leftSide <= rightSide;
     }
 
-    private static void authenticatedKeyExchange() {
+    private static void CompressDecompress() {
 
         try {
 
