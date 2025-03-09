@@ -93,16 +93,39 @@ public class Main {
         long roundedTerm = Math.round(sigma1 * q / m);
         // floor(g(k_1 + roundedTerm) / q)
         long flooredTerm = (long) Math.floor(g * (k1 + roundedTerm) / q);
-        return flooredTerm % (long) g;
+        long lG = (long) g;
+        return ((flooredTerm % lG) + lG) % lG;  // ((a % q) + q) % q; to have always positive result
     }
 
     public static long ARec(double k2, double v, double q, double m, double g) {
         // floor(m * (v / g - k_2 / q))
         long flooredTerm = (long) Math.floor(m * (v / g - k2 / q));
-        return flooredTerm % (long) m;
+        long lM = (long) m;
+        return ((flooredTerm % lM) + lM) % lM;  // ((a % q) + q) % q; to have always positive result
     }
 
     private static void AConARec() {
+        double k1 = 1.0;  // k1 and k2 selected the same so that |k_i - k_j| <= d holds (found in KSRP 5.1)
+        double k2 = 1.0;
+        double q = 12289.0;  // q, m, g taken from KSRP 5.1
+        double m = 16.0;
+        double g = 256.0;
 
+        long nu;
+        long sigma2;
+
+        int numOfSameSigmas = 0;
+
+        for (double sigma1 = 0; sigma1 < m; sigma1 += 1) {
+            nu = ACon(k1, sigma1, q, m, g);
+            sigma2 = ARec(k2, (double) nu, q, m, g);
+
+            numOfSameSigmas += (sigma1 == sigma2) ? 1 : 0;
+
+            System.out.println(sigma1);
+            System.out.println(sigma2);
+            System.out.println("###");
+        }
+        System.out.println(numOfSameSigmas / m);
     }
 }
