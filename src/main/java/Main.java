@@ -105,8 +105,11 @@ public class Main {
     }
 
     private static void AConARec() {
-        double k1 = 1.0;  // k1 and k2 selected the same so that |k_i - k_j| <= d holds (found in KSRP 5.1)
-        double k2 = 1.0;
+
+        System.out.println("Testing all possibilities sigma1 for ACon and ARec.");
+
+        int numOfSameSigmas = 0;
+
         double q = 12289.0;  // q, m, g taken from KSRP 5.1
         double m = 16.0;
         double g = 256.0;
@@ -114,18 +117,27 @@ public class Main {
         long nu;
         long sigma2;
 
-        int numOfSameSigmas = 0;
+        for (int k1 = -5; k1 <= 5; k1++) {  // k1 and k2 selected the same so that |k_i - k_j| <= d holds (found in KSRP 5.1)
+            for (int k2 = -5; k2 <= 5; k2++) {
 
-        for (double sigma1 = 0; sigma1 < m; sigma1 += 1) {
-            nu = ACon(k1, sigma1, q, m, g);
-            sigma2 = ARec(k2, (double) nu, q, m, g);
+                System.out.println("##### k1: " + k1 + " k2: " + k2 + " #####");
+                int numOfSameSigmasInRound = 0;
 
-            numOfSameSigmas += (sigma1 == sigma2) ? 1 : 0;
+                for (double sigma1 = 0; sigma1 < m; sigma1 += 1) {
+                    nu = ACon(k1, sigma1, q, m, g);
+                    sigma2 = ARec(k2, (double) nu, q, m, g);
 
-            System.out.println(sigma1);
-            System.out.println(sigma2);
-            System.out.println("###");
+                    System.out.printf("Sigma1 = %d. ", (long) sigma1);
+                    System.out.printf("Sigma2 = %d.%n", sigma2);
+
+                    numOfSameSigmasInRound += (sigma1 == sigma2) ? 1 : 0;
+                }
+
+                System.out.printf("From %d sigmas %d was the same as an input.%n", (long) m, numOfSameSigmasInRound);
+                numOfSameSigmas += numOfSameSigmasInRound;
+            }
         }
-        System.out.println(numOfSameSigmas / m);
+
+        System.out.printf("From %d sigmas %d was the same as an input, so that is %f percent.%n%n", 11 * 11 * (long) m, numOfSameSigmas, (double) numOfSameSigmas * 100 / (11 * 11 * (long) m));
     }
 }
