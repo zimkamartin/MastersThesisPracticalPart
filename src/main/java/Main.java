@@ -1,12 +1,11 @@
 import com.swiftcryptollc.crypto.provider.KyberJCE;
 import com.swiftcryptollc.crypto.provider.KyberPackedPKI;
 import com.swiftcryptollc.crypto.provider.kyber.KyberParams;
+import com.swiftcryptollc.crypto.provider.kyber.Poly;
 
 import java.security.Security;
-import java.util.Arrays;
 
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateKyberKeys;
-import static com.swiftcryptollc.crypto.provider.kyber.Poly.*;
 import static java.lang.Math.*;
 
 public class Main {
@@ -14,9 +13,9 @@ public class Main {
         Security.setProperty("crypto.policy", "unlimited");
         Security.addProvider(new KyberJCE());
 
-        // CompressDecompress();
+        // compressDecompress();
 
-        AConARec();
+        aConARec();
 
         System.out.print("Everything went well...");
 
@@ -58,29 +57,35 @@ public class Main {
         return leftSide <= rightSide;
     }
 
-    private static void CompressDecompress() {
+    private static byte[] compressPoly3(short[] polyA) {
+
+        byte[] t = new byte[8];
+        polyA = Poly.polyConditionalSubQ(polyA);
+        int rr = 0;
+        byte[] r;
+
+        r = new byte[KyberParams.paramsPolyCompressedBytesK1024];  // why 160?
+        for (int i = 0; i < KyberParams.paramsN / 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                t[j] = (byte) (((((polyA[8 * i + j]) << 3) + (KyberParams.paramsQ / 2)) / (KyberParams.paramsQ)) & 7);
+            }  // TODO: change following rows
+            r[rr + 0] = (byte) ((t[0] >> 0) | (t[1] << 5));
+            r[rr + 1] = (byte) ((t[1] >> 3) | (t[2] << 2) | (t[3] << 7));
+            r[rr + 2] = (byte) ((t[3] >> 1) | (t[4] << 4));
+            r[rr + 3] = (byte) ((t[4] >> 4) | (t[5] << 1) | (t[6] << 6));
+            r[rr + 4] = (byte) ((t[6] >> 2) | (t[7] << 3));
+            rr = rr + 5;
+        }
+
+        return r;
+    }
+
+    private static void compressDecompress() {
 
         try {
 
-            // KEY -> (s_1, p_i) // client //
-
-            int paramsK = 4;
-            KyberPackedPKI keysClient = generateKyberKeys(paramsK);
-            byte[] piC = keysClient.getPackedPublicKey();
-
-            // p_i' = Compress_q(p_i, d_u) // client //
-
-            int du = 11;
-            byte[] piPrime = compressPoly(Utils.byteArrayToShortArray(piC), du);
-            System.out.println(checkCompressOutput(piPrime, KyberParams.paramsQ));
-
-            // p_i = Decompress_q(p_i', d_u) // server //
-
-            short[] piS = decompressPoly(piPrime, du);
-
-            System.out.println(Arrays.toString(piC));
-            System.out.println(Arrays.toString(piS));
-
+            KyberPackedPKI keys = generateKyberKeys(4);
+            byte[] compressed = compressPoly3(new short[1]);
 
         } catch (Exception ex) {
             System.out.println("generateKyberKeys Exception! [" + ex.getMessage() + "]");
@@ -88,7 +93,7 @@ public class Main {
         }
     }
 
-    public static long ACon(double k1, double sigma1, double q, double m, double g) {
+    public static long aCon(double k1, double sigma1, double q, double m, double g) {
         // round(sigma_1 * q / m)
         long roundedTerm = Math.round(sigma1 * q / m);
         // floor(g(k_1 + roundedTerm) / q)
@@ -97,14 +102,14 @@ public class Main {
         return ((flooredTerm % lG) + lG) % lG;  // ((a % q) + q) % q; to have always positive result
     }
 
-    public static long ARec(double k2, double v, double q, double m, double g) {
+    public static long aRec(double k2, double v, double q, double m, double g) {
         // floor(m * (v / g - k_2 / q))
         long flooredTerm = (long) Math.floor(m * (v / g - k2 / q));
         long lM = (long) m;
         return ((flooredTerm % lM) + lM) % lM;  // ((a % q) + q) % q; to have always positive result
     }
 
-    private static void AConARec() {
+    private static void aConARec() {
 
         System.out.println("Testing all possibilities sigma1 for ACon and ARec.");
 
@@ -124,8 +129,8 @@ public class Main {
                 int numOfSameSigmasInRound = 0;
 
                 for (double sigma1 = 0; sigma1 < m; sigma1 += 1) {
-                    nu = ACon(k1, sigma1, q, m, g);
-                    sigma2 = ARec(k2, (double) nu, q, m, g);
+                    nu = aCon(k1, sigma1, q, m, g);
+                    sigma2 = aRec(k2, (double) nu, q, m, g);
 
                     System.out.printf("Sigma1 = %d. ", (long) sigma1);
                     System.out.printf("Sigma2 = %d.%n", sigma2);
