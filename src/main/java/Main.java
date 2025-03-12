@@ -118,22 +118,29 @@ public class Main {
         double q = 12289.0;  // q, m, g taken from KSRP 5.1
         double m = 16.0;
         double g = 256.0;
+        double d = 509.0;
 
         long nu;
         long sigma2;
 
-        for (int k1 = -5; k1 <= 5; k1++) {  // k1 and k2 selected the same so that |k_i - k_j| <= d holds (found in KSRP 5.1)
-            for (int k2 = -5; k2 <= 5; k2++) {
+        for (int k1 = 0; k1 < q; k1++) {  // goes through all possibilities for k1 and k2. Both params are from Z_q.
+            for (int k2 = 0; k2 < q; k2++) {
+                if (abs(k1 - k2) > d) {  // From paper: "Thence, |k_i − k_j| <= d, i.e., equation sk_i = sk_j holds in the protocol proposed in this paper."
+                    continue;
+                }
 
-                System.out.println("##### k1: " + k1 + " k2: " + k2 + " #####");
                 int numOfSameSigmasInRound = 0;
 
                 for (double sigma1 = 0; sigma1 < m; sigma1 += 1) {
                     nu = aCon(k1, sigma1, q, m, g);
                     sigma2 = aRec(k2, (double) nu, q, m, g);
 
-                    System.out.printf("Sigma1 = %d. ", (long) sigma1);
-                    System.out.printf("Sigma2 = %d.%n", sigma2);
+                    if (sigma1 == sigma2) {
+                        numOfSameSigmasInRound += 1;
+                        System.out.printf("K1 = %d. K2 = %d. ", k1, k2);
+                        System.out.printf("Sigma1 = %d. ", (long) sigma1);
+                        System.out.printf("Sigma2 = %d.%n", sigma2);
+                    }
 
                     numOfSameSigmasInRound += (sigma1 == sigma2) ? 1 : 0;
                 }
