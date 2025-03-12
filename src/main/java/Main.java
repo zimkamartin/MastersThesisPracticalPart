@@ -8,6 +8,12 @@ import java.security.Security;
 import static com.swiftcryptollc.crypto.provider.kyber.Indcpa.generateKyberKeys;
 import static java.lang.Math.*;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class Main {
     public static void main(String[] args) {
         Security.setProperty("crypto.policy", "unlimited");
@@ -113,43 +119,54 @@ public class Main {
 
         System.out.println("Testing all possibilities sigma1 for ACon and ARec.");
 
-        int numOfSameSigmas = 0;
+        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());  // to be sure, that name of a file is unique
+        String fileName = timestamp + ".txt";
 
-        double q = 12289.0;  // q, m, g taken from KSRP 5.1
-        double m = 16.0;
-        double g = 256.0;
-        double d = 509.0;
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(fileName))) {  // Write same outputs as inputs to a file.
 
-        long nu;
-        long sigma2;
+            int numOfSameSigmas = 0;
 
-        for (int k1 = 0; k1 < q; k1++) {  // goes through all possibilities for k1 and k2. Both params are from Z_q.
-            for (int k2 = 0; k2 < q; k2++) {
-                if (abs(k1 - k2) > d) {  // From paper: "Thence, |k_i − k_j| <= d, i.e., equation sk_i = sk_j holds in the protocol proposed in this paper."
-                    continue;
-                }
+            double q = 12289.0;  // q, m, g taken from KSRP 5.1
+            double m = 16.0;
+            double g = 256.0;
+            double d = 509.0;
 
-                int numOfSameSigmasInRound = 0;
+            long nu;
+            long sigma2;
 
-                for (double sigma1 = 0; sigma1 < m; sigma1 += 1) {
-                    nu = aCon(k1, sigma1, q, m, g);
-                    sigma2 = aRec(k2, (double) nu, q, m, g);
-
-                    if (sigma1 == sigma2) {
-                        numOfSameSigmasInRound += 1;
-                        System.out.printf("K1 = %d. K2 = %d. ", k1, k2);
-                        System.out.printf("Sigma1 = %d. ", (long) sigma1);
-                        System.out.printf("Sigma2 = %d.%n", sigma2);
+            for (int k1 = 0; k1 < q; k1++) {  // goes through all possibilities for k1 and k2. Both params are from Z_q.
+                for (int k2 = 0; k2 < q; k2++) {
+                    if (abs(k1 - k2) > d) {  // From paper: "Thence, |k_i − k_j| <= d, i.e., equation sk_i = sk_j holds in the protocol proposed in this paper."
+                        continue;
                     }
 
-                    numOfSameSigmasInRound += (sigma1 == sigma2) ? 1 : 0;
+                    int numOfSameSigmasInRound = 0;
+
+                    for (double sigma1 = 0; sigma1 < m; sigma1 += 1) {
+                        nu = aCon(k1, sigma1, q, m, g);
+                        sigma2 = aRec(k2, (double) nu, q, m, g);
+
+                        if (sigma1 == sigma2) {
+                            numOfSameSigmasInRound += 1;
+                            String k = String.format("K1 = %d. K2 = %d. ", k1, k2);
+                            String s1 = String.format("Sigma1 = %d. ", (long) sigma1);
+                            String s2 = String.format("Sigma2 = %d.%n", sigma2);
+
+                            writer.write(k);
+                            writer.write(s1);
+                            writer.write(s2);
+                        }
+                    }
+                    numOfSameSigmas += numOfSameSigmasInRound;
                 }
-
-                System.out.printf("From %d sigmas %d was the same as an input.%n", (long) m, numOfSameSigmasInRound);
-                numOfSameSigmas += numOfSameSigmasInRound;
             }
-        }
 
-        System.out.printf("From %d sigmas %d was the same as an input, so that is %f percent.%n%n", 11 * 11 * (long) m, numOfSameSigmas, (double) numOfSameSigmas * 100 / (11 * 11 * (long) m));
+            writer.newLine();
+            String stats = String.format("From %d sigmas %d was the same as an input, so that is %f percent.%n%n", 11 * 11 * (long) m, numOfSameSigmas, (double) numOfSameSigmas * 100 / (11 * 11 * (long) m));
+            writer.write(stats);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
