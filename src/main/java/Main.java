@@ -116,7 +116,7 @@ public class Main {
     }
 
     private static void aConARec() {
-
+        long counter = 0;
         System.out.println("Testing all possibilities sigma1 for ACon and ARec.");
 
         String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());  // to be sure, that name of a file is unique
@@ -136,6 +136,7 @@ public class Main {
 
             for (int k1 = 0; k1 < q; k1++) {  // goes through all possibilities for k1 and k2. Both params are from Z_q.
                 for (int k2 = 0; k2 < q; k2++) {
+
                     if (abs(k1 - k2) > d) {  // From paper: "Thence, |k_i − k_j| <= d, i.e., equation sk_i = sk_j holds in the protocol proposed in this paper."
                         continue;
                     }
@@ -156,13 +157,14 @@ public class Main {
                             writer.write(s1);
                             writer.write(s2);
                         }
+                        counter += 1;
                     }
                     numOfSameSigmas += numOfSameSigmasInRound;
                 }
             }
 
             writer.newLine();
-            String stats = String.format("From %d sigmas %d was the same as an input, so that is %f percent.%n%n", 11 * 11 * (long) m, numOfSameSigmas, (double) numOfSameSigmas * 100 / (11 * 11 * (long) m));
+            String stats = String.format("From %d sigmas %d was the same as an input, so that is %f percent.%n%n", counter, numOfSameSigmas, (double) numOfSameSigmas * 100 / counter);
             writer.write(stats);
 
         } catch (IOException e) {
